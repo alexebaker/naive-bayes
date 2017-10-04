@@ -59,6 +59,7 @@ python open-docs.py
 ## TODO
 
 - [ ] - Implement Naive Bayes
+- [ ] - Write up final report
 
 
 ## Authors
