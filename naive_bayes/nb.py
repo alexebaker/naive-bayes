@@ -11,7 +11,7 @@ from scipy.sparse import csr_matrix, save_npz, load_npz
 
 
 
-def get_parsed_martix(csv_file, matrix_file):
+def get_parsed_matrix(csv_file, matrix_file):
     """Parses the data out of the data file and into a format used by naive bayes.
 
     :rtype: scipy.sparse.csr_matrix
@@ -29,8 +29,6 @@ def get_parsed_martix(csv_file, matrix_file):
                 row += 1
         matrix = csr_matrix(matrix)
         save_npz(matrix_file, matrix)
-
-    print(matrix.shape)
     return matrix
 
 
