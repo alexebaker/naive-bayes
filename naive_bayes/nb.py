@@ -21,7 +21,10 @@ def get_parsed_matrix(csv_file, matrix_file):
     if os.path.isfile(matrix_file):
         matrix = load_npz(matrix_file)
     else:
-        matrix = np.zeros((12000, 61190), dtype=np.int32)
+        if 'testing' in csv_file:
+            matrix = np.zeros((12000, 61189), dtype=np.int32)
+        else:
+            matrix = np.zeros((12000, 61190), dtype=np.int32)
         row = 0
         with open(csv_file, 'r') as f:
             for line in f.readlines():
