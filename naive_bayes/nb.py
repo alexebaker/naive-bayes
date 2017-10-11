@@ -1,72 +1,55 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import os
 import numpy as np
+
+from scipy.sparse import csr_matrix, save_npz, load_npz
 
 
 #np.set_printoptions(threshold='nan')
 
 
-def parse_training_file():
+
+def get_parsed_martix(csv_file, matrix_file):
     """Parses the data out of the data file and into a format used by naive bayes.
 
-    :type training_data: File Object
-    :param training_data: A file object from the cli to parse into a data structure.
-
-    :type vocab: File Object
-    :param vocab: A file object from the cli to parse into a data structure.
-
-    :type newsgroups: File Object
-    :param newsgroups: A file object from the cli to parse into a data structure.
-
-    :rtype: dict
-    :returns: A data structure with the parsed data from the data file.
+    :rtype: scipy.sparse.csr_matrix
+    :returns: A sparse matrix read from the csv file
     """
-    training_matrix = np.zeros((12000, 61188), dtype=np.int32)
-    row = 0
-    for line in training_file.readlines():
-        training_matrix[row, :] = map(int, line.split(','))
-        row += 1
-    print(training_matrix.shape)
+    matrix = None
+    if os.path.isfile(matrix_file):
+        matrix = load_npz(matrix_file)
+    else:
+        matrix = np.zeros((12000, 61190), dtype=np.int32)
+        row = 0
+        with open(csv_file, 'r') as f:
+            for line in f.readlines():
+                matrix[row, :] = map(int, line.split(','))
+                row += 1
+        matrix = csr_matrix(matrix)
+        save_npz(matrix_file, matrix)
+
+    print(matrix.shape)
+    return matrix
 
 
-#    train_data = {}
-#    test_data = {}
-#    vocab = {}
-#    newsgroups = {}
+def get_frequency_matrix(parsed_matrix):
+    """Computes the frequency matrix based on the given parsed matrix.
 
-#    for line in news_groups:
-#        newsgroup_id, newsgroup = line.split(' ')
-#        newsgroups[int(newsgroup_id)] = newsgroup
+    :type parsed_martix: scipy.parse.csr_matrix
+    :param parsed_matrix: matrix parsed from csv file
 
-#    word_id = 1
-#    for line in vocabulary.readlines():
-#        vocab[word_id] = line
-#        word_id += 1
+    :rtype:
+    :returns: The computed frequency matrix based on the parsed matrix.
+    """
+    # Ignore the first and last part of the matrix
+    counts = parsed_matrix[:, 1:-1]
 
-#    for line in training_data:
-#        ids = line.split(',')
-#        document_id = int(ids[0])
-#        newsgroup_id = int(ids[-1])
-
-#        train_data[document_id] = {}
-#        train_data[document_id]['class'] = newsgroup_id
-#        train_data[document_id]['words'] = {}
-
-#        for word_id, word_count in enumerate(ids[1:-1]):
-#            train_data[document_id]['words'][word_id+1] = int(word_count)
-
-#    for line in testing_data:
-#        ids = line.split(',')
-#        document_id = int(ids[0])
-#
-#        test_data[document_id] = {}
-#        test_data[document_id]['words'] = {}
-
-#        for word_id, word_count in enumerate(ids[1:]):
-#            test_data[document_id]['words'][word_id+1] = int(word_count)
-
-    return training_matrix
+    #### Implemenataion needed
+    frequency_matrix = np.zeros((20, 61188), dtype=np.int32)
+    frequency_matrix = csr_matrix(frequency_matrix)
+    return frequency_matrix
 
 
 def save_classification(classification, classification_file):

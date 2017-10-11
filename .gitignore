@@ -2,6 +2,7 @@
 *classification*.csv
 training.csv
 testing.csv
+*.npz
 
 
 # General

@@ -5,18 +5,26 @@ from naive_bayes import cli
 from naive_bayes import nb
 
 
+training_csv = './data/training.csv'
+testing_csv = './data/testing.csv'
+training_matrix_file = './data/training_matrix.npz'
+testing_matrix_file = './data/training_matrix.npz'
+classification_file = './classification.csv'
+
+
 def main():
     """Main entry point to the decision tree."""
     # Parse the command line arguments
     cli_args = cli.parse_args()
 
     # Parse the training and testing data file given from the cli arguments
-    training_data = nb.parse_training_file(cli_args.get('training_data'))
+    parsed_matrix = nb.get_parsed_martix(training_csv, training_matrix_file)
+    frequency_matrix = nb.get_frequency_matrix(parsed_matrix)
 
     classification = None
 
     # Write the classification to a file for submission
-    nb.save_classification(classification, cli_args.get('classification_file'))
+    nb.save_classification(classification, classification_file)
     return
 
 
