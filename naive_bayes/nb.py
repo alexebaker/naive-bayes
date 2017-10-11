@@ -52,6 +52,23 @@ def get_frequency_matrix(parsed_matrix):
     frequency_matrix = csr_matrix(frequency_matrix)
     return frequency_matrix
 
+def get_likelihood_matrix(frequency_matrix):
+    """Computes the likelihood matrix based on the given frequency matrix.
+
+    :type frequency_martix: scipy.parse.csr_matrix
+    :param frequency_matrix: matrix made from totaling words given the class
+
+    :rtype:
+    :returns: The computed likelihood matrix based on the frequency matrix.
+    """
+    """ Will add a row to the bottom for the count of each word divided by 
+    the count of all words and a will add a column to the end for the word 
+    count of that class divided by the total number of words."""
+    #### Implemenataion needed
+    likelihood_matrix = np.zeroes((21, 61189), dtype=np.complex32)
+    likelihood_matrix = csr_matrix(likelihood_matrix)
+    return likelihood_matrix
+
 
 def save_classification(classification, classification_file):
     """Saves the classification from naive bayes to a file.
