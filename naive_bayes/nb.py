@@ -45,7 +45,6 @@ def get_frequency_matrix(parsed_matrix):
     :rtype: scipy.sparse.csr_matrix
     :returns: The computed frequency matrix based on the parsed matrix.
     """
-    #### Implemenataion needed
     frequency_matrix = parsed_matrix[:, 1:-1]
     sums = np.sum(frequency_matrix, axis=0)
     sums[sums == 0] = 1  # don't divide by 0, divide by 1 instead
