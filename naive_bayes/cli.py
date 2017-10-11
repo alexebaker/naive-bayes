@@ -19,12 +19,26 @@ def parse_args():
     parser.add_argument(
         '--training-data',
         type=argparse.FileType(mode='r'),
+        default='./data/training.csv',
         help='Path to the training data file.')
 
     parser.add_argument(
         '--testing-data',
         type=argparse.FileType(mode='r'),
+        default='./data/testing.csv',
         help='Path to the test data file.')
+
+    parser.add_argument(
+        '--vocabulary',
+        type=argparse.FileType(mode='r'),
+        default='./data/vocabulary.txt',
+        help='Path to the vocabulary file.')
+
+    parser.add_argument(
+        '--news-groups',
+        type=argparse.FileType(mode='r'),
+        default='./data/newsgrouplabels.txt',
+        help='Path to the news group label files.')
 
     parser.add_argument(
         '--classification-file',

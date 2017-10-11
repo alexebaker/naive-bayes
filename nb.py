@@ -11,8 +11,7 @@ def main():
     cli_args = cli.parse_args()
 
     # Parse the training and testing data file given from the cli arguments
-    training_data = nb.parse_data(cli_args.get('training_data'))
-    testing_data = nb.parse_data(cli_args.get('testing_data'))
+    training_data = nb.parse_training_file(cli_args.get('training_data'))
 
     classification = None
 
