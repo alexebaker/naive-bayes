@@ -70,8 +70,8 @@ def get_likelihood_matrix(frequency_matrix, beta=1):
     word_prob = np.zeros((1, frequency_matrix.shape[1]-1), dtype=np.int32)
     group_prob = np.zeros((1, frequency_matrix[0]), dtype=np.int32)
 
-    col_sums = np.sum(likelihood_matrix, axis=0)
-    row_sums = np.sum(likelihood_matrix[:, :-1], axis=1)
+    col_sums = np.sum(frequency_matrix, axis=0)
+    row_sums = np.sum(frequency_matrix[:, :-1], axis=1)
 
     try:
         word_prob = col_sums[:, :-1] / total_words
