@@ -80,7 +80,7 @@ def get_likelihood_matrix(frequency_matrix, beta=1):
         print ("No words in matrix")
 
     #sums[sums == 0] = 1  # don't divide by 0, divide by 1 instead
-    likelihood_matrix = (frequency_matrix + beta) / (col_sums + frequency_matrix.shape[1])
+    likelihood_matrix = (frequency_matrix + beta) / (col_sums + frequency_matrix.shape[1] - 1)
     return (likelihood_matrix, word_prob, group_prob)
 
 
