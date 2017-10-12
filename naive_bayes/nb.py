@@ -54,7 +54,7 @@ def get_frequency_matrix(parsed_matrix):
     return frequency_matrix
 
 
-def get_likelihood_matrix(frequency_matrix):
+def get_likelihood_matrix(frequency_matrix, beta=1):
     """Computes the likelihood matrix based on the given frequency matrix.
 
     :type frequency_martix: scipy.parse.csr_matrix
@@ -79,9 +79,9 @@ def get_likelihood_matrix(frequency_matrix):
     except ZeroDivisionError:
         print ("No words in matrix")
 
-    col_sums[col_sums == 0] = 1  # don't divide by 0, divide by 1 instead
-    likelihood_matrix = frequency_matrix / col_sums
-    return likelihood_matrix, word_prob, group_prob
+    #sums[sums == 0] = 1  # don't divide by 0, divide by 1 instead
+    likelihood_matrix = (likelihood_matrix + beta) / (col_sums + frequency_matrix.shape[1])
+    return (likelihood_matrix, word_prob, group_prob)
 
 
 def save_classification(classification, classification_file):
