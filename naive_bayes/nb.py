@@ -45,10 +45,7 @@ def get_frequency_matrix(parsed_matrix):
     :rtype: scipy.sparse.csr_matrix
     :returns: The computed frequency matrix based on the parsed matrix.
     """
-    frequency_matrix = parsed_matrix[:, 1:-1]
-    sums = np.sum(frequency_matrix, axis=0)
-    sums[sums == 0] = 1  # don't divide by 0, divide by 1 instead
-    frequency_matrix = frequency_matrix / sums
+    frequency_matrix=np.zeros((21, 61190), dtype=np.int32)
     return frequency_matrix
 
 
@@ -64,9 +61,21 @@ def get_likelihood_matrix(frequency_matrix):
     """ Will add a row to the bottom for the count of each word divided by
     the count of all words and a will add a column to the end for the word
     count of that class divided by the total number of words."""
-    #### Implemenataion needed
-    likelihood_matrix = np.zeroes((21, 61189), dtype=np.complex32)
-    likelihood_matrix = csr_matrix(likelihood_matrix)
+    likelihood_matrix = frequency_matrix[:, 1:-1]
+    total_words=likelihood_matrix.sum()
+    word_prob = []
+    group_prob =[]
+    sums = np.sum(likelihood_matrix, axis=0)
+    row_sums=np.sum(likelihood_matrix, axis=1)
+    try:
+      for i in range(61190):
+         word_prob.append(sums[i]/total_words)
+      for j in range(21):
+         group_prob.append(row_sums[j]/total_words)
+    except ZeroDivisionError:
+        print ("No words in matrix")
+    sums[sums == 0] = 1  # don't divide by 0, divide by 1 instead
+    likelihood_matrix = likelihood_matrix / sums
     return likelihood_matrix
 
 
