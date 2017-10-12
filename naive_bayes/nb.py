@@ -11,7 +11,6 @@ from scipy.sparse import csr_matrix, save_npz, load_npz
 #np.set_printoptions(threshold='nan')
 
 
-
 def get_parsed_matrix(csv_file, matrix_file):
     """Parses the data out of the data file and into a format used by naive bayes.
 
@@ -20,7 +19,8 @@ def get_parsed_matrix(csv_file, matrix_file):
     """
     matrix = None
     if os.path.isfile(matrix_file):
-        matrix = load_npz(matrix_file)
+        sparse_matrix = load_npz(matrix_file)
+        matrix = sparse_matrix.todense()
     else:
         if 'testing' in csv_file:
             matrix = np.zeros((12000, 61189), dtype=np.int32)
@@ -31,8 +31,9 @@ def get_parsed_matrix(csv_file, matrix_file):
             for line in f.readlines():
                 matrix[row, :] = map(int, line.split(','))
                 row += 1
-        matrix = csr_matrix(matrix)
-        save_npz(matrix_file, matrix)
+        matrix = matrix[:, 1:]
+        sparse_matrix = csr_matrix(matrix)
+        save_npz(matrix_file, sparse_matrix)
     return matrix
 
 
@@ -45,7 +46,11 @@ def get_frequency_matrix(parsed_matrix):
     :rtype: scipy.sparse.csr_matrix
     :returns: The computed frequency matrix based on the parsed matrix.
     """
-    frequency_matrix=np.zeros((21, 61190), dtype=np.int32)
+    frequency_matrix = np.zeros((20, 61189), dtype=np.int32)
+    for row in range(frequency_matrix.shape[0]):
+        group_rows = parsed_matrix[np.where(parsed_matrix[:, -1] == row+1)[0], :]
+        frequency_matrix[row, :-1] = np.sum(group_rows[:, :-1], axis=0)
+        frequency_matrix[row, -1] = group_rows.shape[0]
     return frequency_matrix
 
 
@@ -58,25 +63,25 @@ def get_likelihood_matrix(frequency_matrix):
     :rtype:
     :returns: The computed likelihood matrix based on the frequency matrix.
     """
-    """ Will add a row to the bottom for the count of each word divided by
-    the count of all words and a will add a column to the end for the word
-    count of that class divided by the total number of words."""
-    likelihood_matrix = frequency_matrix[:, 1:-1]
-    total_words=likelihood_matrix.sum()
-    word_prob = []
-    group_prob =[]
-    sums = np.sum(likelihood_matrix, axis=0)
-    row_sums=np.sum(likelihood_matrix, axis=1)
+    likelihood_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
+
+    total_words = np.sum(frequency_matrix[:, :-1])
+
+    word_prob = np.zeros((1, frequency_matrix.shape[1]-1), dtype=np.int32)
+    group_prob = np.zeros((1, frequency_matrix[0]), dtype=np.int32)
+
+    col_sums = np.sum(likelihood_matrix, axis=0)
+    row_sums = np.sum(likelihood_matrix[:, :-1], axis=1)
+
     try:
-      for i in range(61190):
-         word_prob.append(sums[i]/total_words)
-      for j in range(21):
-         group_prob.append(row_sums[j]/total_words)
+        word_prob = col_sums[:, :-1] / total_words
+        group_prob = row_sums / total_words
     except ZeroDivisionError:
         print ("No words in matrix")
-    sums[sums == 0] = 1  # don't divide by 0, divide by 1 instead
-    likelihood_matrix = likelihood_matrix / sums
-    return likelihood_matrix
+
+    col_sums[col_sums == 0] = 1  # don't divide by 0, divide by 1 instead
+    likelihood_matrix = frequency_matrix / col_sums
+    return likelihood_matrix, word_prob, group_prob
 
 
 def save_classification(classification, classification_file):
