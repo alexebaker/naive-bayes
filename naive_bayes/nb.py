@@ -83,6 +83,24 @@ def get_likelihood_matrix(frequency_matrix, beta=1):
     likelihood_matrix = (frequency_matrix + beta) / (col_sums + frequency_matrix.shape[1])
     return (likelihood_matrix, word_prob, group_prob)
 
+def classify_naive_bayes_row(document_row, likelihood_matrix, group_prob):
+    """Computes the newsgroup that the document.
+
+    :type document_row: array
+    :param document_row: unclassified document
+
+    :type likelihood_matrix: matrix
+    :param likelihood_matrix: a table of word probabilities given the newsgroup
+
+    :type group_prob: array
+    :param group_prob: the probability of a particular newsgroup
+
+    :rtype:
+    :returns: The classification of the document.
+    """
+    newsgroup = 0
+    #needs implementation
+    return newsgroup
 
 def save_classification(classification, classification_file):
     """Saves the classification from naive bayes to a file.
