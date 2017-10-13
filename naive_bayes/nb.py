@@ -54,7 +54,7 @@ def get_frequency_matrix(parsed_matrix):
     return frequency_matrix
 
 
-def get_likelihood_matrix(frequency_matrix, beta=1):
+def get_likelihood_matrix(frequency_matrix, beta=.000016342):
     """Computes the likelihood matrix based on the given frequency matrix.
 
     :type frequency_martix: scipy.parse.csr_matrix
@@ -80,7 +80,7 @@ def get_likelihood_matrix(frequency_matrix, beta=1):
         print ("No words in matrix")
 
     #sums[sums == 0] = 1  # don't divide by 0, divide by 1 instead
-    likelihood_matrix = np.log((frequency_matrix + beta) / (col_sums + frequency_matrix.shape[1]))
+    likelihood_matrix = np.log((frequency_matrix + beta) / (row_sums + beta))
     return (likelihood_matrix, word_prob, group_prob)
 
 def classify_naive_bayes_row(document_row, likelihood_matrix, group_prob):
