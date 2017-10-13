@@ -75,12 +75,12 @@ def get_likelihood_matrix(frequency_matrix, beta=1):
 
     try:
         word_prob = col_sums[:-1] / total_words
-        group_prob = row_sums / total_words
+        group_prob = np.log(row_sums / total_words)
     except ZeroDivisionError:
         print ("No words in matrix")
 
     #sums[sums == 0] = 1  # don't divide by 0, divide by 1 instead
-    likelihood_matrix = (frequency_matrix + beta) / (col_sums + frequency_matrix.shape[1])
+    likelihood_matrix = np.log((frequency_matrix + beta) / (col_sums + frequency_matrix.shape[1]))
     return (likelihood_matrix, word_prob, group_prob)
 
 def classify_naive_bayes_row(document_row, likelihood_matrix, group_prob):
@@ -98,8 +98,16 @@ def classify_naive_bayes_row(document_row, likelihood_matrix, group_prob):
     :rtype:
     :returns: The classification of the document.
     """
+    classify_matrix = np.multiply(likelihood_matrix, document_row)
+    row_sums = np.sum(classify_matrix[:, :-1], axis=1)
+    freq_prob= np.add(row_sums,group_prob)
     newsgroup = 0
-    #needs implementation
+    argmax = 0
+    for i in range(len(freq_prob)):
+        if freq_prob[i]>argmax:
+            argmax=freq_prob[i]
+            newsgroup=i+1    
+
     return newsgroup
 
 def save_classification(classification, classification_file):
