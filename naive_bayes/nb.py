@@ -135,6 +135,28 @@ def get_likelihood_matrix2(frequency_matrix, beta=1):
     likelihood_matrix[:, :-1] = (frequency_matrix[:, :-1] + beta) / (total_words + vocab_size)
     likelihood_matrix[:, -1] = frequency_matrix[:, -1] / total_docs
     return np.log(likelihood_matrix)
+    
+def get_likelihood_matrix3(frequency_matrix, beta=1):
+    """Computes the likelihood matrix based on the given frequency matrix.
+
+    :type frequency_martix: ndarray
+    :param frequency_matrix: matrix made from totaling words given the class
+
+    :rtype: ndarray
+    :returns: The computed likelihood matrix based on the frequency matrix.
+    """
+    
+    likelihood_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
+    
+    for i in range(20):
+        total_words = np.sum(frequency_matrix[i,:])
+        likelihood_matrix[i, :-1] = (frequency_matrix[i, :-1]+beta) / (total_words+vocab_size)
+
+    total_docs = np.sum(frequency_matrix[:, -1])
+
+    likelihood_matrix[:, -1] = frequency_matrix[:, -1] / total_docs
+            
+    return np.log(likelihood_matrix)
 
 
 def get_classification(test_matrix, likelihood_matrix):
