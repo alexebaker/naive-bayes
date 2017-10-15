@@ -146,6 +146,10 @@ def get_classification(test_matrix, likelihood_matrix):
     tmp[:, :-1] = test_matrix
     test_matrix = tmp
 
+    # Set all of the counts to 1. idk how to deal with the counts with the logs
+    # So just doing this for now
+    test_matrix[test_matrix.nonzero()] = 1
+
     product = likelihood_matrix.dot(test_matrix.T)
     classification[:, 1] = np.argmax(product, axis=0) + 1
     return classification
