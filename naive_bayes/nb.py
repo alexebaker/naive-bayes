@@ -139,7 +139,7 @@ def get_likelihood_matrix2(frequency_matrix, beta=1):
 
 def get_classification(test_matrix, likelihood_matrix):
     classification = np.zeros((test_matrix.shape[0], 2), dtype=np.int32)
-    classification[:, 0] = np.arange(test_matrix.shape[0]) + 1
+    classification[:, 0] = np.arange(test_matrix.shape[0]) + 12001
 
     # add a col of 1's as the last col. This represents P(x)
     tmp = np.ones((test_matrix.shape[0], test_matrix.shape[1]+1))
