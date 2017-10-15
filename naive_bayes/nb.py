@@ -60,65 +60,7 @@ def get_frequency_matrix(parsed_matrix):
     return frequency_matrix
 
 
-def get_likelihood_matrix(frequency_matrix, beta=.000016342):
-    """Computes the likelihood matrix based on the given frequency matrix.
-
-    :type frequency_martix: scipy.parse.csr_matrix
-    :param frequency_matrix: matrix made from totaling words given the class
-
-    :rtype:
-    :returns: The computed likelihood matrix based on the frequency matrix.
-    """
-    likelihood_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
-
-    total_words = np.sum(frequency_matrix[:, :-1])
-
-    word_prob = np.zeros((1, frequency_matrix.shape[1]-1), dtype=np.int32)
-    group_prob = np.zeros((1, frequency_matrix.shape[0]), dtype=np.int32)
-
-    col_sums = np.sum(frequency_matrix, axis=0)
-    row_sums = np.sum(frequency_matrix[:, :-1], axis=1)
-
-    try:
-        word_prob = col_sums[:-1] / total_words
-        group_prob = np.log(row_sums / total_words)
-    except ZeroDivisionError:
-        print ("No words in matrix")
-
-    #sums[sums == 0] = 1  # don't divide by 0, divide by 1 instead
-    likelihood_matrix = np.log((frequency_matrix + beta) / (row_sums + beta))
-    return (likelihood_matrix, word_prob, group_prob)
-
-
-def classify_naive_bayes_row(document_row, likelihood_matrix, group_prob):
-    """Computes the newsgroup that the document.
-
-    :type document_row: array
-    :param document_row: unclassified document
-
-    :type likelihood_matrix: matrix
-    :param likelihood_matrix: a table of word probabilities given the newsgroup
-
-    :type group_prob: array
-    :param group_prob: the probability of a particular newsgroup
-
-    :rtype:
-    :returns: The classification of the document.
-    """
-    classify_matrix = np.multiply(likelihood_matrix, document_row)
-    row_sums = np.sum(classify_matrix[:, :-1], axis=1)
-    freq_prob= np.add(row_sums,group_prob)
-    newsgroup = 0
-    argmax = 0
-    for i in range(len(freq_prob)):
-        if freq_prob[i]>argmax:
-            argmax=freq_prob[i]
-            newsgroup=i+1
-
-    return newsgroup
-
-
-def get_likelihood_matrix2(frequency_matrix, beta=1):
+def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size):
     """Computes the likelihood matrix based on the given frequency matrix.
 
     :type frequency_martix: ndarray
@@ -127,35 +69,14 @@ def get_likelihood_matrix2(frequency_matrix, beta=1):
     :rtype: ndarray
     :returns: The computed likelihood matrix based on the frequency matrix.
     """
+
     likelihood_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
 
-    total_words = np.sum(frequency_matrix[:, :-1])
+    word_counts = np.sum(frequency_matrix[:, :-1], axis=1).reshape((frequency_matrix.shape[0], 1))
     total_docs = np.sum(frequency_matrix[:, -1])
 
-    likelihood_matrix[:, :-1] = (frequency_matrix[:, :-1] + beta) / (total_words + vocab_size)
+    likelihood_matrix[:, :-1] = (frequency_matrix[:, :-1] + beta) / (word_counts + beta)
     likelihood_matrix[:, -1] = frequency_matrix[:, -1] / total_docs
-    return np.log(likelihood_matrix)
-    
-def get_likelihood_matrix3(frequency_matrix, beta=1):
-    """Computes the likelihood matrix based on the given frequency matrix.
-
-    :type frequency_martix: ndarray
-    :param frequency_matrix: matrix made from totaling words given the class
-
-    :rtype: ndarray
-    :returns: The computed likelihood matrix based on the frequency matrix.
-    """
-    
-    likelihood_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
-    
-    for i in range(20):
-        total_words = np.sum(frequency_matrix[i,:])
-        likelihood_matrix[i, :-1] = (frequency_matrix[i, :-1]+beta) / (total_words+vocab_size)
-
-    total_docs = np.sum(frequency_matrix[:, -1])
-
-    likelihood_matrix[:, -1] = frequency_matrix[:, -1] / total_docs
-            
     return np.log(likelihood_matrix)
 
 
@@ -170,7 +91,7 @@ def get_classification(test_matrix, likelihood_matrix):
 
     # Set all of the counts to 1. idk how to deal with the counts with the logs
     # So just doing this for now
-    test_matrix[test_matrix.nonzero()] = 1
+    #test_matrix[test_matrix.nonzero()] = 1
 
     product = likelihood_matrix.dot(test_matrix.T)
     classification[:, 1] = np.argmax(product, axis=0) + 1

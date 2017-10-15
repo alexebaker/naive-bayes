@@ -18,8 +18,8 @@ def parse_args():
     # Add arguments to the parser
     parser.add_argument(
         '--beta',
-        type=int,
+        type=float,
         default=1,
-        help='Beta for MLE')
+        help='Beta for MAP')
 
     return vars(parser.parse_args())
