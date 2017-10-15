@@ -132,9 +132,9 @@ def get_likelihood_matrix2(frequency_matrix, beta=1):
     total_words = np.sum(frequency_matrix[:, :-1])
     total_docs = np.sum(frequency_matrix[:, -1])
 
-    likelihood_matrix[:, :-1] = np.log((frequency_matrix[:, :-1] + beta) / (total_words + vocab_size))
+    likelihood_matrix[:, :-1] = (frequency_matrix[:, :-1] + beta) / (total_words + vocab_size)
     likelihood_matrix[:, -1] = frequency_matrix[:, -1] / total_docs
-    return likelihood_matrix
+    return np.log(likelihood_matrix)
 
 
 def get_classification(test_matrix, likelihood_matrix):

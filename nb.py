@@ -12,6 +12,7 @@ testing_matrix_file = './data/testing_matrix.npz'
 classification_file = './classification.csv'
 
 
+#@profile
 def main():
     """Main entry point to the decision tree."""
     # Parse the command line arguments
