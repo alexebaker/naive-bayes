@@ -20,13 +20,14 @@ def main():
     # Parse the training and testing data file given from the cli arguments
     parsed_matrix = nb.get_parsed_matrix(training_csv, training_matrix_file)
     frequency_matrix = nb.get_frequency_matrix(parsed_matrix)
-    likelihood_matrix, word_prob, group_prob = nb.get_likelihood_matrix(frequency_matrix, beta=cli_args.get('beta'))
+    likelihood_matrix = nb.get_likelihood_matrix2(frequency_matrix)
+    #likelihood_matrix, word_prob, group_prob = nb.get_likelihood_matrix(frequency_matrix, beta=cli_args.get('beta'))
 
     parsed_matrix = nb.get_parsed_matrix(testing_csv, testing_matrix_file)
-    classification = None
+    parsed_matrix = nb.get_classification(parsed_matrix, likelihood_matrix)
 
     # Write the classification to a file for submission
-    nb.save_classification(classification, classification_file)
+    nb.save_classification(parsed_matrix, classification_file)
     return
 
 
