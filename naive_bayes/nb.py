@@ -5,7 +5,7 @@ from __future__ import division
 import os
 import numpy as np
 
-from scipy.sparse import csr_matrix, save_npz, load_npz
+from scipy.sparse import csr_matrix, save_npz, load_npz, dok_matrix
 
 
 #np.set_printoptions(threshold='nan')
@@ -69,13 +69,14 @@ def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size):
     :rtype: ndarray
     :returns: The computed likelihood matrix based on the frequency matrix.
     """
+    beta = 1 + (1 / vocab_size)
 
     likelihood_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
 
     word_counts = np.sum(frequency_matrix[:, :-1], axis=1).reshape((frequency_matrix.shape[0], 1))
     total_docs = np.sum(frequency_matrix[:, -1])
 
-    likelihood_matrix[:, :-1] = (frequency_matrix[:, :-1] + beta) / (word_counts + beta)
+    likelihood_matrix[:, :-1] = (frequency_matrix[:, :-1] + (beta - 1)) / (word_counts + ((beta - 1) * vocab_size))
     likelihood_matrix[:, -1] = frequency_matrix[:, -1] / total_docs
     return np.log(likelihood_matrix)
 
