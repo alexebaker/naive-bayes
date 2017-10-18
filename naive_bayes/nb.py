@@ -86,7 +86,7 @@ def get_frequency_matrix(parsed_matrix):
     return frequency_matrix
 
 
-def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size, ranked=False, num_ranked_words=100):
+def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size, ranked=True, num_ranked_words=100):
     """Computes the likelihood matrix based on the given frequency matrix.
 
     The likelihood_matrix is all of the conditional probabilities needed for naive bayes.
@@ -122,8 +122,7 @@ def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size, ranked=False, num
         entropy_vector = np.sum(entropy_matrix[:-1, :], axis=0).reshape((1, entropy_matrix.shape[1]))
         sorted_entropy = sorted(entropy_vector.transpose().tolist())
         min_entropy = sorted_entropy[len(sorted_entropy)-num_ranked_words-1]
-        print(min_entropy)
-        for i in range(len(entropy_vector)):
+        for i in range(entropy_vector.shape[1]):
             entropy_vector[0][i]= 0 if entropy_vector[0][i]<min_entropy else 1
         entropy_vector[:, -1] = 1
         frequency_matrix=np.multiply(frequency_matrix, entropy_vector)
