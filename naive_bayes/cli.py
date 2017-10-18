@@ -1,5 +1,8 @@
 from __future__ import print_function
 from __future__ import unicode_literals
+from __future__ import division
+
+from naive_bayes import nb
 
 import argparse
 
@@ -19,7 +22,7 @@ def parse_args():
     parser.add_argument(
         '--beta',
         type=float,
-        default=1/61188,
+        default=1/nb.vocab_size,
         help='Beta for MAP')
 
     return vars(parser.parse_args())
