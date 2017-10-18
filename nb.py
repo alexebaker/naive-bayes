@@ -12,9 +12,8 @@ testing_matrix_file = './data/testing_matrix.npz'
 classification_file = './classification.csv'
 
 
-#@profile
 def main():
-    """Main entry point to the decision tree."""
+    """Main entry point."""
     # Parse the command line arguments
     cli_args = cli.parse_args()
 
@@ -23,7 +22,12 @@ def main():
     frequency_matrix = nb.get_frequency_matrix(parsed_matrix)
     likelihood_matrix = nb.get_likelihood_matrix(frequency_matrix, beta=cli_args.get('beta'))
 
+    # the training data is not needed anymore after we have the likelihood matrix,
+    # so we overwrite this matix with the testing matrix to save space in memory
     parsed_matrix = nb.get_parsed_matrix(testing_csv, testing_matrix_file)
+
+    # The testing data isn't needed after it is classified, so we overwrite it again,
+    # to help save memory.
     parsed_matrix = nb.get_classification(parsed_matrix, likelihood_matrix)
 
     # Write the classification to a file for submission

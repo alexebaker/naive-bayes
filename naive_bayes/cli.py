@@ -19,7 +19,7 @@ def parse_args():
     parser.add_argument(
         '--beta',
         type=float,
-        default=1,
+        default=1/61188,
         help='Beta for MAP')
 
     return vars(parser.parse_args())
