@@ -86,7 +86,7 @@ def get_frequency_matrix(parsed_matrix):
     return frequency_matrix
 
 
-def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size):
+def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size, ranked=False, num_ranked_words=100):
     """Computes the likelihood matrix based on the given frequency matrix.
 
     The likelihood_matrix is all of the conditional probabilities needed for naive bayes.
@@ -111,6 +111,22 @@ def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size):
 
     # this is just a vector sum, since only the last column has counts for each newsgroup
     total_docs = np.sum(frequency_matrix[:, -1])
+
+    if ranked:
+        temp_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
+        temp_matrix[:, :-1] = (frequency_matrix[:, :-1] + beta) / (word_counts + beta)
+        temp_matrix[:, -1] = 1
+        temp_matrix=np.log(temp_matrix)
+        entropy_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
+        entropy_matrix[:, :-1] = (frequency_matrix[:, :-1]/word_counts)*temp_matrix[:, :-1]
+        entropy_vector = np.sum(entropy_matrix[:-1, :], axis=0).reshape((1, entropy_matrix.shape[1]))
+        sorted_entropy = sorted(entropy_vector.transpose().tolist())
+        min_entropy = sorted_entropy[len(sorted_entropy)-num_ranked_words-1]
+        print(min_entropy)
+        for i in range(len(entropy_vector)):
+            entropy_vector[0][i]= 0 if entropy_vector[0][i]<min_entropy else 1
+        entropy_vector[:, -1] = 1
+        frequency_matrix=np.multiply(frequency_matrix, entropy_vector)
 
     # This line computes the MAP probability based on the frequency matrix and beta
     # This ignores the last col since that is the counts of the newsgroups, and not the words.
