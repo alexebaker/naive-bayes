@@ -128,52 +128,75 @@ def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size, ranked=True, num_
     return np.log(likelihood_matrix)
 
 def get_ranked_list(word_counts, frequency_matrix, num_ranked_words=100):
-    #calculate the mean
+    """Computes highest ranked words after filtering rare words and very common words like 'the'.
+
+    :type word_counts: numpy.ndarray that is in fact a 1D array
+    :param word_counts: the total number of words for a given class.
+
+    :type frequency_martix: numpy.ndarray
+    :param frequency_matrix: matrix made from totaling words given the class
+
+    :type num_ranked_words: int32
+    :param num_ranked_words: the number of words to be printed that the classifier relies on.
+    """
+
+    #Calculate the mean
     mean = np.sum(word_counts[:,-1])/vocab_size
     col_sums = np.sum(frequency_matrix[:,:], axis=0)
 
-    #subtract the mean from each data point and sqaure each difference
+    #Subtract the mean from each data point and sqaure each difference
     sq_diff= (col_sums[:]-mean)**2
 
-    #calculate the mean of the square differences, then take the square root.
+    #Calculate the mean of the square differences, then take the square root.
     std_dev = math.sqrt(np.sum(sq_diff[:])/vocab_size)
     
-    #produce a vector to zero out words that are 2 std deviations from the mean.
+    #Produce a vector to zero out words that are 2 std deviations from the mean.
     for i in range(len(col_sums)-1):
         if col_sums[i]<(mean-(2*std_dev)) or col_sums[i]>(mean+(2*std_dev)):
             col_sums[i]=0
         else:
             col_sums[i]=1
-
+    
+    #new_freq_matrix only has values that are within 2 standard deviations of mean
+    #This eliminates common words like "the" and rare words as well.
     new_freq_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
     new_freq_matrix = np.multiply(frequency_matrix, col_sums)
     beta=1/vocab_size
     temp_matrix = np.zeros(new_freq_matrix.shape, dtype=np.float64)
 
+    #This is the MAP, which contains a prior allowing us to take the log because there are no 0's
     temp_matrix[:, :-1] = (new_freq_matrix[:, :-1] + beta) / (word_counts + beta)
     temp_matrix[:, -1] = 1
     temp_matrix=np.log(temp_matrix)
+
+    #each value in the matrix is multiplied by its probability, need for the information gain equation
     entropy_matrix = np.zeros(new_freq_matrix.shape, dtype=np.float64)
     entropy_matrix[:, :-1] = (new_freq_matrix[:, :-1]/word_counts)*temp_matrix[:, :-1]
+
+    #values are summed but the sign is never flipped because the relationship of maximum remians.
     entropy_vector = np.sum(entropy_matrix[:-1, :], axis=0).reshape((1, entropy_matrix.shape[1]))
+
+    #This list is sorted so the highest information gain is at the front
     sorted_entropy = sorted(entropy_vector.transpose().tolist())
 
-    #grab the element that is at the rank cutoff position
+    #This grabs the element that is at the rank cutoff position
     min_entropy = sorted_entropy[num_ranked_words-1]
 
-    #opens vocabulary with read only permission.
+    #This opens vocabulary with read only permission.
     f = open('./data/vocabulary.txt', "r")
 
-    #each line is an element in a list and close f
+    #Each line is an element in a list and close f
     words = f.readlines()
     f.close()
 
+    #Here the words that are going to be printed are paired with their information gain value.
     ranked_list=[]
     for i in range(entropy_vector.shape[1]-1):
         if entropy_vector[0][i]<=min_entropy:
             ranked_list.append([entropy_vector[0][i], words[i]])
     f1=open('./testfile.txt', 'w+')
 
+    #This adds the highest ranked words to the document.  The default is 100
     sorted_ranked_list = sorted(ranked_list, key=operator.itemgetter(0))
     for i in range(len(sorted_ranked_list)):
         temp_string = "%d. %s" %(i+1, sorted_ranked_list[i][1])
