@@ -176,7 +176,7 @@ def get_ranked_list(word_counts, frequency_matrix, num_ranked_words=100):
     #values are summed but the sign is never flipped because the relationship of maximum remians.
     entropy_vector = np.sum(entropy_matrix[:-1, :], axis=0).reshape((1, entropy_matrix.shape[1]))
 
-    #This list is sorted so the highest information gain is at the front
+    #This list is sorted so the highest information gain is at the front, the most negative number.
     sorted_entropy = sorted(entropy_vector.transpose().tolist())
 
     #This grabs the element that is at the rank cutoff position
