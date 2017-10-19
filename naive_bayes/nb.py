@@ -4,6 +4,8 @@ from __future__ import division
 
 import os
 import numpy as np
+import operator
+import math
 
 from scipy.sparse import csr_matrix, save_npz, load_npz
 
@@ -46,7 +48,7 @@ def get_parsed_matrix(csv_file, matrix_file):
         sparse_matrix = csr_matrix(matrix)
         save_npz(matrix_file, sparse_matrix)
 
-    # returns a normal matirx. Sparse matrices don't have the same indexing power
+    # returns a normal matrix. Sparse matrices don't have the same indexing power
     # as normal matrices, so we will be using normal matrices in the other functions.
     return matrix
 
@@ -86,7 +88,7 @@ def get_frequency_matrix(parsed_matrix):
     return frequency_matrix
 
 
-def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size, ranked=False, num_ranked_words=100):
+def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size, ranked=True, num_ranked_words=100):
     """Computes the likelihood matrix based on the given frequency matrix.
 
     The likelihood_matrix is all of the conditional probabilities needed for naive bayes.
@@ -113,19 +115,7 @@ def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size, ranked=False, num
     total_docs = np.sum(frequency_matrix[:, -1])
 
     if ranked:
-        temp_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
-        temp_matrix[:, :-1] = (frequency_matrix[:, :-1] + beta) / (word_counts + beta)
-        temp_matrix[:, -1] = 1
-        temp_matrix=np.log(temp_matrix)
-        entropy_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
-        entropy_matrix[:, :-1] = (frequency_matrix[:, :-1]/word_counts)*temp_matrix[:, :-1]
-        entropy_vector = np.sum(entropy_matrix[:-1, :], axis=0).reshape((1, entropy_matrix.shape[1]))
-        sorted_entropy = sorted(entropy_vector.transpose().tolist())
-        min_entropy = sorted_entropy[len(sorted_entropy)-num_ranked_words-1]
-        for i in range(entropy_vector.shape[1]):
-            entropy_vector[0][i]= 0 if entropy_vector[0][i]<min_entropy else 1
-        entropy_vector[:, -1] = 1
-        frequency_matrix=np.multiply(frequency_matrix, entropy_vector)
+        get_ranked_list(word_counts, frequency_matrix, num_ranked_words);
 
     # This line computes the MAP probability based on the frequency matrix and beta
     # This ignores the last col since that is the counts of the newsgroups, and not the words.
@@ -137,6 +127,58 @@ def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size, ranked=False, num
     # We return the log of the likihood matrix for future calculations
     return np.log(likelihood_matrix)
 
+def get_ranked_list(word_counts, frequency_matrix, num_ranked_words=100):
+    #calculate the mean
+    mean = np.sum(word_counts[:,-1])/vocab_size
+    col_sums = np.sum(frequency_matrix[:,:], axis=0)
+
+    #subtract the mean from each data point and sqaure each difference
+    sq_diff= (col_sums[:]-mean)**2
+
+    #calculate the mean of the square differences, then take the square root.
+    std_dev = math.sqrt(np.sum(sq_diff[:])/vocab_size)
+    
+    #produce a vector to zero out words that are 2 std deviations from the mean.
+    for i in range(len(col_sums)-1):
+        if col_sums[i]<(mean-(2*std_dev)) or col_sums[i]>(mean+(2*std_dev)):
+            col_sums[i]=0
+        else:
+            col_sums[i]=1
+
+    new_freq_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
+    new_freq_matrix = np.multiply(frequency_matrix, col_sums)
+    beta=1/vocab_size
+    temp_matrix = np.zeros(new_freq_matrix.shape, dtype=np.float64)
+
+    temp_matrix[:, :-1] = (new_freq_matrix[:, :-1] + beta) / (word_counts + beta)
+    temp_matrix[:, -1] = 1
+    temp_matrix=np.log(temp_matrix)
+    entropy_matrix = np.zeros(new_freq_matrix.shape, dtype=np.float64)
+    entropy_matrix[:, :-1] = (new_freq_matrix[:, :-1]/word_counts)*temp_matrix[:, :-1]
+    entropy_vector = np.sum(entropy_matrix[:-1, :], axis=0).reshape((1, entropy_matrix.shape[1]))
+    sorted_entropy = sorted(entropy_vector.transpose().tolist())
+
+    #grab the element that is at the rank cutoff position
+    min_entropy = sorted_entropy[num_ranked_words-1]
+
+    #opens vocabulary with read only permission.
+    f = open('./data/vocabulary.txt', "r")
+
+    #each line is an element in a list and close f
+    words = f.readlines()
+    f.close()
+
+    ranked_list=[]
+    for i in range(entropy_vector.shape[1]-1):
+        if entropy_vector[0][i]<=min_entropy:
+            ranked_list.append([entropy_vector[0][i], words[i]])
+    f1=open('./testfile.txt', 'w+')
+
+    sorted_ranked_list = sorted(ranked_list, key=operator.itemgetter(0))
+    for i in range(len(sorted_ranked_list)):
+        temp_string = "%d. %s" %(i+1, sorted_ranked_list[i][1])
+        f1.write(temp_string)
+    f1.close()
 
 def get_classification(test_matrix, likelihood_matrix):
     """Computes the classification of the test data given the frequency_matrix.
