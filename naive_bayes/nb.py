@@ -203,14 +203,14 @@ def get_ranked_list(word_counts, frequency_matrix, num_ranked_words=100):
     f1.close()
 
 
-def get_confusion_matrix(parsed_matrix):
+def get_confusion_matrix(parsed_matrix, beta=1/vocab_size):
     # break the training and testing matrix up by the first 11,000 docs
     # and the last 1,000 docs
     training_matrix = parsed_matrix[0:11000, :]
     testing_matrix = parsed_matrix[11000:, :]
 
     frequency_matrix = get_frequency_matrix(training_matrix)
-    likelihood_matrix = get_likelihood_matrix(frequency_matrix)
+    likelihood_matrix = get_likelihood_matrix(frequency_matrix, beta=beta)
 
     classification = get_classification(testing_matrix[:, :-1], likelihood_matrix)
 

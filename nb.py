@@ -22,8 +22,8 @@ def main():
     frequency_matrix = nb.get_frequency_matrix(parsed_matrix)
     likelihood_matrix = nb.get_likelihood_matrix(frequency_matrix, beta=cli_args.get('beta'))
 
-    if cli_args.get('confision'):
-        nb.get_confusion_matrix(parsed_matrix)
+    if cli_args.get('confusion'):
+        nb.get_confusion_matrix(parsed_matrix, beta=cli_args.get('beta'))
 
     # the training data is not needed anymore after we have the likelihood matrix,
     # so we overwrite this matix with the testing matrix to save space in memory
