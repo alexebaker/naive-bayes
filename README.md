@@ -66,14 +66,24 @@ Once the virtualenv is activated, you can run the python script. The main entry 
 
 ```bash
 >>>python nb.py -h
-usage: nb.py [-h] [--beta BETA]
+usage: nb.py [-h] [--training-data TRAINING_DATA]
+             [--testing-data TESTING_DATA]
+             [--classification-file CLASSIFICATION_FILE] [--beta BETA]
+             [--confusion]
 
 Classifies the testing data using naive bayes and the training data.
 
 optional arguments:
-  -h, --help   show this help message and exit
-  --beta BETA  Beta for MAP
-```
+  -h, --help            show this help message and exit
+  --training-data TRAINING_DATA
+                        Path to the training data file.
+  --testing-data TESTING_DATA
+                        Path to the test data file.
+  --classification-file CLASSIFICATION_FILE
+                        Path to the classification file to write the results
+                        of the testing data.
+  --beta BETA           Beta for MAP
+  --confusion           Print out the confusion matrix```
 
 To run the code with the default beta value (1/|V|), you don't need any arguments:
 
@@ -85,6 +95,12 @@ If you want to change the beta value, you can add the argument:
 
 ```bash
 >>>python nb.py --beta 0.1
+```
+
+You can also specify different testing and training data if you want, however, they default to what is shown:
+
+```bash
+>>>python nb.py --training-data data/training.csv --testing-data data/testing.csv --classification-file classification.csv
 ```
 
 

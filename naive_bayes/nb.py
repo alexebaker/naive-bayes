@@ -30,15 +30,14 @@ def get_parsed_matrix(csv_file, matrix_file):
         matrix = sparse_matrix.todense()
     else:
         # initialize the matrix with 0's. This will help speed up the time to parse the data file
-        if 'testing' in csv_file:
+        if 'testing' in csv_file.name:
             matrix = np.zeros((num_tests, vocab_size+1), dtype=np.int32)
         else:
             matrix = np.zeros((num_docs, vocab_size+2), dtype=np.int32)
         row = 0
-        with open(csv_file, 'r') as f:
-            for line in f.readlines():
-                matrix[row, :] = map(int, line.split(','))
-                row += 1
+        for line in csv_file.readlines():
+            matrix[row, :] = map(int, line.split(','))
+            row += 1
 
         # Gets rid of the first column of ids. We don't need this
         # since that information is based on the row. i.e. row 0 is ID 1.
@@ -115,7 +114,7 @@ def get_likelihood_matrix(frequency_matrix, beta=1/vocab_size, ranked=True, num_
     total_docs = np.sum(frequency_matrix[:, -1])
 
     if ranked:
-        get_ranked_list(word_counts, frequency_matrix, num_ranked_words);
+        get_ranked_list(word_counts, frequency_matrix, num_ranked_words)
 
     # This line computes the MAP probability based on the frequency matrix and beta
     # This ignores the last col since that is the counts of the newsgroups, and not the words.
@@ -149,14 +148,14 @@ def get_ranked_list(word_counts, frequency_matrix, num_ranked_words=100):
 
     #Calculate the mean of the square differences, then take the square root.
     std_dev = math.sqrt(np.sum(sq_diff[:])/vocab_size)
-    
+
     #Produce a vector to zero out words that are 2 std deviations from the mean.
     for i in range(len(col_sums)-1):
         if col_sums[i]<(mean-(2*std_dev)) or col_sums[i]>(mean+(2*std_dev)):
             col_sums[i]=0
         else:
             col_sums[i]=1
-    
+
     #new_freq_matrix only has values that are within 2 standard deviations of mean
     #This eliminates common words like "the" and rare words as well.
     new_freq_matrix = np.zeros(frequency_matrix.shape, dtype=np.float64)
@@ -203,7 +202,43 @@ def get_ranked_list(word_counts, frequency_matrix, num_ranked_words=100):
         f1.write(temp_string)
     f1.close()
 
-def get_classification(test_matrix, likelihood_matrix):
+
+def get_confusion_matrix(parsed_matrix):
+    # break the training and testing matrix up by the first 11,000 docs
+    # and the last 1,000 docs
+    training_matrix = parsed_matrix[0:11000, :]
+    testing_matrix = parsed_matrix[11000:, :]
+
+    frequency_matrix = get_frequency_matrix(training_matrix)
+    likelihood_matrix = get_likelihood_matrix(frequency_matrix)
+
+    classification = get_classification(testing_matrix[:, :-1], likelihood_matrix)
+
+    real_class = testing_matrix[:, -1]
+    calc_class = classification[:, 1].reshape((real_class.size, 1))
+
+    # this tests which columns are equal (i.e. the calculated class = the acutal class)
+    # and divides that number by the total number of test documents
+    accuracy = np.sum(real_class == calc_class) / real_class.size
+
+    confusion_matrix = np.zeros((num_newsgroups, num_newsgroups), dtype=np.int32)
+    for row in range(num_newsgroups):
+        for col in range(num_newsgroups):
+            # this computes the confusion matrix. First, is selects the documents
+            # that are classified for the real group (column) and then compares it
+            # to the calculated groups for that class (row)
+            confusion_matrix[row][col] = np.sum(calc_class[real_class == col+1] == row+1)
+
+    # this is required to print out an entire matrix, and not just the first few columns and rows.
+    np.set_printoptions(threshold='nan')
+
+    # print out accuracy and confusion matrix
+    print('accuracy = %f' % accuracy)
+    print(confusion_matrix)
+    return
+
+
+def get_classification(test_matrix, likelihood_matrix, starting_id=12001):
     """Computes the classification of the test data given the frequency_matrix.
 
     :type test_martix: numpy.ndarray
@@ -221,7 +256,7 @@ def get_classification(test_matrix, likelihood_matrix):
 
     # the test data starts at document id 12001, so we add that to
     # the first column.
-    classification[:, 0] = np.arange(test_matrix.shape[0]) + 12001
+    classification[:, 0] = np.arange(test_matrix.shape[0]) + starting_id
 
     # add a col of 1's as the last column of the test matrix. this is to
     # always count the MLE probability in the matrix multiplication.
@@ -252,8 +287,7 @@ def save_classification(classification, classification_file):
     :type classification_file: File Object
     :param classification_file: File to write the classification to.
     """
-    with open(classification_file, 'w') as f:
-        print("id,class", file=f)
-        for row in classification:
-            print("%d,%d" % (row[0], row[1]), file=f)
+    print("id,class", file=classification_file)
+    for row in classification:
+        print("%d,%d" % (row[0], row[1]), file=classification_file)
     return
